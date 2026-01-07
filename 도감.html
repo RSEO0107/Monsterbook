@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dungeon Minimaps</title>
+
+<style>
+:root { --sidebar: minmax(240px, 280px); }
+body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+.app{ display:grid; grid-template-columns:var(--sidebar) 1fr; height:100vh; }
+
+/* Left */
+.sidebar{ border-right:1px solid #ddd; padding:12px; overflow:auto; }
+.sidebar h3{ text-align: center; margin:0 0 10px; font-size:14px; }
+.dungeon-item{
+  padding:10px;
+  border:1px solid #eee;
+  border-radius:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+  user-select:none;
+}
+.dungeon-item.active{ border-color:#333; }
+
+/* Center (Responsive map) */
+.main{
+  padding:12px;
+  background:#fff;
+
+  /* ✅ 아래만 스크롤 되도록 main은 고정 레이아웃 */
+  height:100vh;
+  box-sizing:border-box;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.map-wrap{
+  width:100%;
+  max-width:1600px;
+  margin:0 auto;
+  position:relative;
+  border:1px solid #ddd;
+  border-radius:14px;
+  overflow:hidden;
+  background:#fafafa;
+  flex:0 0 auto;
+}
+.map-img{
+  width:100%;
+  height:auto;
+  display:block;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.overlay{ position:absolute; inset:0; pointer-events:none; }
+
+.dot{
+  position:absolute;
+  width:10px; height:10px;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:auto;
+  cursor:pointer;
+  outline:2px solid rgba(0,0,0,0.25);
+}
+.dot.dim{ opacity:.18; }
+
+/* ✅ DUNGEONS memo 표시(미니맵 아래, 작게, 가운데) */
+.dungeon-memo{
+  max-width:1600px;
+  margin:0 auto;
+  text-align:center;
+  font-size:12px;
+  line-height:1.5;
+  color:#666;
+  padding:6px 10px;
+  border-radius:12px;
+  background:#fff;
+  border:1px solid #eee;
+}
+.dungeon-memo:empty{ display:none; }
+
+/* Below map panel (scroll area) */
+.below{
+  width:100%;
+  max-width:1600px;
+  margin:0 auto;
+  flex:1 1 auto;
+  min-height:0;          /* ✅ flex 스크롤 핵심 */
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ✅ 아래 목록만 스크롤 */
+.group-sections{
+  min-height:0;          /* ✅ 스크롤 핵심 */
+  overflow:auto;
+  display:grid;
+  gap:12px;
+  padding-right:6px;     /* 스크롤바 공간 */
+}
+
+/* Section (재사용) */
+.group-section{
+  border:none;              /* ❌ 바깥 테두리 제거 */
+  background:transparent;   /* 배경 제거 */
+  padding:0;                /* 여백 제거 */
+}
+.group-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.group-dot{
+  width:10px;height:10px;border-radius:50%;
+  outline:2px solid rgba(0,0,0,0.25);
+  flex:0 0 auto;
+}
+.group-title{ font-weight:800; }
+.group-sub{
+  margin: 0 auto;
+  font-size:12px;
+  color:#666;
+  text-align:center;
+}
+
+/* Tooltip */
+.tooltip{
+  position:fixed;
+  z-index:9999;
+  display:none;
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
+  padding:10px;
+  max-width:min(740px,90vw);
+  max-height:min(70vh,7000px);
+}
+.tooltip .scroll{ overflow:auto; max-height:inherit; }
+
+/* Monster list/card (팝업/하단 동일 UI) */
+.monster-list{ display:grid; gap:10px; }
+.monster-card{
+  display:flex;
+  gap:12px;
+  align-items:stretch;
+  padding:8px;
+  border:1px solid #eee;
+  border-radius:12px;
+  background:#fff;
+}
+
+/* 150x150 thumb + overlay */
+.thumb{
+  width:150px;height:150px; flex:0 0 150px;
+  border-radius:10px;
+  border:1px solid #eee;
+  background:#f4f4f4;
+  position:relative;
+  overflow:hidden;
+}
+.thumb img{ width:100%; height:100%; object-fit:contain; display:block; }
+
+.thumb-overlay{
+  position:absolute; left:0; right:0; bottom:0;
+  padding:6px 8px;
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  background:linear-gradient(to top,rgba(0,0,0,.65),transparent);
+  pointer-events:none;
+}
+.race-icon{
+  max-width:14px; max-height:18px;
+  width:auto; height:auto;
+  object-fit:contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
+}
+.monster-name{
+  color:#fff; font-size:12px; font-weight:800;
+  text-align:center;
+  text-shadow:0 1px 2px rgba(0,0,0,.7);
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+
+/* info centered */
+.info{
+  flex:1;
+  min-height:150px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.meta{ white-space:pre-wrap; text-align:center; width:100%; }
+
+/* Mobile */
+@media(max-width:900px){
+  .app{ grid-template-columns:1fr; grid-template-rows:auto 1fr; }
+  .sidebar{ border:none; }
+  .main{ height:auto; overflow:visible; }
+  .below{ overflow:visible; }
+  .group-sections{ overflow:visible; padding-right:0; }
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h3>1000~1800 드랍테이블</h3>
+    <div id="dungeonList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="map-wrap" id="mapWrap">
+      <img id="mapImg" class="map-img" alt="minimap">
+      <div id="overlay" class="overlay"></div>
+    </div>
+
+    <!-- ✅ DUNGEONS에 적은 메모 표시 -->
+    <div id="dungeonMemo" class="dungeon-memo"></div>
+
+    <!-- ✅ 아래: "몬스터(종류) 목록"만 표시 -->
+    <div class="below">
+      <div class="group-sections" id="groupSections"></div>
+    </div>
+  </main>
+</div>
+
+<div id="tooltip" class="tooltip" role="dialog" aria-hidden="true">
+  <div class="scroll" id="tipBody"></div>
+</div>
+
+<script>
+/* =========================
+   배포 시 여기만 수정
+   ========================= */
+const EDIT_MODE = true; // true = 좌표 찍기 / false = 일반 사용자
+/* ========================= */
+
+let currentDungeon = null;
+let currentScale = 1;
+
+/* ✅ 하단에서 hover 중인 "몬스터 이름" (ex. "리자드 워리어") */
+let activeMonsterHover = null;
+
+const DUNGEONS = [
+  {
+    id:"652",
+    name:"Lv.1000 [명계]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/652.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "외각",
+        color: "#fff34f",
+        monsters: [
+          { name:"리자드 워리어", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 3,628\n체력 : 693,000\n치명타 저항 15%\n\n드랍 : 양손검, 창, 낫, 장갑 대용, 공용 갑옷, 어깨 문신" },
+          { name:"리자드 트루퍼", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 3,978\n체력 : 780,600\n치명타 저항 20%\n\n드랍 : 활, 마술봉, 목걸이, 전용갑옷, 화살" },
+        ],
+        coords: [
+          [1161,780],[1309,782],[1472,705],[1496,556],[1426,463],[1326,383],[1243,255],
+          [1085,239],[903,282],[728,260],[599,189],[444,142],[257,161],[151,273],[117,447],
+          [142,592],[211,658],[400,728],[665,768],[851,779],[1005,783]
+        ]
+      },
+      B:{
+        name: "내각",
+        color:"#18b6ff",
+        monsters:[
+          { name:"용암 오징어", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+            info:"필요 운 : 4,632\n체력 : 2,676,801\n치명타 저항 35%\n\n불 에너지펫 필요\n\n드랍 : 슬링, 채찍, 벨트, 팔찌, 탄환" },
+          { name:"저승의 기사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 7,890\n체력 : 3,374,401\n치명타 저항 50%\n\n드랍 : 양손검, 이빨, 메이스, 발톱, 채찍, 갑옷" },
+          { name:"이블아이", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 7,371\n체력 : 3,193,108\n치명타 저항 35%\n\n대지 에너지펫 필요\n\n드랍 : 날개, 단검, 관, 투구" },
+        ],
+        coords:[[1027,459],[971,588],[854,449],[726,427],[591,393],[444,332],[311,355],[286,473],
+          [445,529],[563,570],[706,590],[825,619]]
+      }
+    }
+  },
+  {
+    id:"438",
+    name:"Lv.1000 [산기슭 마을 움바]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/438/438.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "유목민",
+        color: "#fff34f",
+        monsters: [
+          { name:"유목민", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/438/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 4,982\n체력 : 405,607 ~ 557,709\n치명타 저항 40%\n\n드랍 : 피리, 이빨, 장갑, 장갑 대용, 십자가" },
+        ],
+        coords: [
+          [448,152],[969,95]
+        ]
+      },
+      B:{
+        name: "유목민 + 강신술사",
+        color:"#18b6ff",
+        monsters:[
+          { name:"유목민", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/438/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 4,982\n체력 : 405,607 ~ 557,709\n치명타 저항 40%\n\n드랍 : 피리, 이빨, 장갑, 장갑 대용, 십자가" },
+          { name:"강신술사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/438/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 4,719\n체력 : 8,966,089\n치명타 저항 55%\n\n드랍 : 지팡이, 날개, 책, 관" },
+        ],
+        coords:[
+          [167,301],[99,535],[269,778],[729,785],[1179,729],[1279,356]
+        ]
+      }
+    }
+  },
+  {
+    id:"656",
+    name:"Lv.1050 [레드아이 옛 연구소 B4]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/656.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "레드아이 마법사",
+        color: "#FF0000",
+        monsters: [
+          { name:"레드아이 마법사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 5,094\n체력 : 1,269,901\n치명타 저항 25%\n\n물 에너지펫 필요\n\n드랍 : 피리, 마술봉, 관, 망토, 화살" },
+        ],
+        coords: [
+          [1247,463]
+        ]
+      },
+      B:{
+        name: "레드아이 요원",
+        color:"#FFA500",
+        monsters:[
+          { name:"레드아이 요원", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단검, 귀걸이, 벨트, 탄환, 어깨 문신" },
+        ],
+        coords:[
+          [929,619]
+        ]
+      },
+      C: {
+        name: "실험체",
+        color: "#FFFF00",
+        monsters: [
+          { name:"실험체", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 6,825\n체력 : 1,189,951\n치명타 저항 35%\n\n드랍 : 창, 지팡이, 책, 벨트, 팔찌" },
+        ],
+        coords: [
+          [1106,534]
+        ]
+      },
+      D: {
+        name: "마법사 + 요원",
+        color: "#7CFC00",
+        monsters: [
+          { name:"레드아이 마법사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 5,094\n체력 : 1,269,901\n치명타 저항 25%\n\n물 에너지펫 필요\n\n드랍 : 피리, 마술봉, 관, 망토, 화살",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+          { name:"레드아이 요원", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단검, 귀걸이, 벨트, 탄환, 어깨 문신",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+        ],
+        coords: [
+          [637,208],[711,257],[359,297],[221,357]
+        ]
+      },
+      E: {
+        name: "마법사 + 실험체",
+        color: "#0000FF",
+        monsters: [
+          { name:"레드아이 마법사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 5,094\n체력 : 1,269,901\n치명타 저항 25%\n\n물 에너지펫 필요\n\n드랍 : 피리, 마술봉, 관, 망토, 화살",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+          { name:"실험체", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 6,825\n체력 : 1,189,951\n치명타 저항 35%\n\n드랍 : 창, 지팡이, 책, 벨트, 팔찌",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+        ],
+        coords: [
+          [808,120],[914,159],[370,99],[237,173]
+        ]
+      },
+      F: {
+        name: "마법사 + 요원 + 실험체",
+        color: "#800080",
+        monsters: [
+          { name:"레드아이 마법사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 5,094\n체력 : 1,269,901\n치명타 저항 25%\n\n물 에너지펫 필요\n\n드랍 : 피리, 마술봉, 관, 망토, 화살",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+          { name:"레드아이 요원", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단검, 귀걸이, 벨트, 탄환, 어깨 문신",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+          { name:"실험체", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 6,825\n체력 : 1,189,951\n치명타 저항 35%\n\n드랍 : 창, 지팡이, 책, 벨트, 팔찌",
+            display:false /* ✅ 하단에선 숨김(예시) */
+          },
+        ],
+        coords: [
+          [1048,316],[909,381],[703,510],[484,411],[366,472]
+        ]
+      },
+    }
+  },
+  {
+    id:"660",
+    name:"Lv.1100 [헤메는 망령의 무덤]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/660/660.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "다크 파이어",
+        color: "#fff34f",
+        monsters: [
+          { name:"다크 파이어", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/660/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 6,958\n체력 : 1,096,001\n치명타 저항 45%\n\n어둠 에너지펫 필요\n\n드랍 : 창, 날개, 전용갑옷, 반지" },
+        ],
+        coords: [
+          [315,528],[1069,502],[1202,145],[546,229]
+        ]
+      },
+    } 
+  },
+  {
+  id:"664",
+  name:"Lv.1100 [폐광 B11]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/664/664.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "폐광",
+      color: "#fff34f",
+      monsters: [
+        { name:"콜로서스", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/664/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 7,807\n체력 : 11,839,505\n치명타 저항 40%\n\n드랍 : 이빨, 메이스, 신발, 반지"
+        },
+        { name:"닭투사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/664/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 4,859\n체력 : 363,801\n치명타 저항 30%\n\n드랍 : 한손검, 활, 장갑, 팔찌, 방패, 팔 문신"
+        },
+        { name:"유령", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/664/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+          info:"필요 운 : 4,574\n체력 : 315,933\n치명타 저항 25%\n\n드랍 : 날개, 피리, 귀걸이, 망토, 브로치"
+        }
+      ],
+      coords: [
+        [349,96],[238,331],[539,346],[112,561],[216,656],[548,491],[470,648],[730,692],[943,696],[932,542],
+		[1204,611],[1464,489],[1228,401],[1355,157],[1471,277],[1134,81],[1024,199],[609,239],[812,277],[993,383]
+        ]
+      },
+    } 
+  },
+  {
+  id:"668",
+  name:"Lv.1200 [영구동토층]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/668/668.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "폐광",
+      color: "#fff34f",
+      monsters: [
+        { name:"얼어붙은 해골", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/668/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+          info:"필요 운 : 7,046\n체력 : 1,534,651\n치명타 저항 70%\n\n물 에너지펫 필요\n\n드랍 : 지팡이, 마술봉, 책, 관, 십자가, 팔 문신"
+        },
+        { name:"얼어붙은 용골", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/668/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+          info:"필요 운 : 7,892\n체력 : 1,898,101\n치명타 저항 80%\n\n드랍 : 이빨, 목걸이, 투구, 장갑 대용, 십자가"
+        },
+        { name:"얼어붙은 호박", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/668/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+          info:"필요 운 : 7,488\n체력 : 1,857,421\n치명타 저항 60%\n\n드랍 : 망토, 벨트, 장갑, 신발, 탄환, 반지"
+        }
+      ],
+      coords: [
+        [294,670],[239,510],[221,377],[184,165],[426,268],[565,138],[777,142],[724,341],[520,432],[509,597],[663,716]
+      ]
+    },
+  }
+},
+{
+  id:"672",
+  name:"Lv.1250 [은밀한 다과회]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/672.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "마녀 + 요녀 + 사역마",
+      color: "#0000FF",
+      monsters: [
+        { name:"다과회의 마녀", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 7,925\n체력 : 2,210,101\n치명타 저항 60%\n\n드랍 : 피리, 귀걸이, 갑옷, 신발"
+        },
+        { name:"다과회의 요녀", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 8,932\n체력 : 2,388,901\n치명타 저항 55%\n\n저하계 저항 필요\n\n드랍 : 슬링, 목걸이, 벨트, 팔찌"
+        },
+        { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+        }
+      ],
+      coords: [
+        [827,122],[1008,210],[1196,304],[1322,412],[1100,497],[920,385],[877,594],[670,702]
+      ]
+    },
+	B: {
+      name: "사역마",
+      color: "#FF0000",
+      monsters: [
+        { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+        }
+      ],
+      coords: [
+        [634,533],[747,482]
+      ]
+    },
+	C: {
+      name: "요녀 + 사역마",
+      color: "#FFA500",
+      monsters: [
+        { name:"다과회의 요녀", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 8,932\n체력 : 2,388,901\n치명타 저항 55%\n\n저하계 저항 필요\n\n드랍 : 슬링, 목걸이, 벨트, 팔찌"
+        },
+        { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+        }
+      ],
+      coords: [
+        [439,616],[250,530],[464,429],[737,295],
+      ]
+    },
+	D: {
+      name: "마녀 + 사역마",
+      color: "#FFF34F",
+      monsters: [
+        { name:"다과회의 마녀", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 7,925\n체력 : 2,210,101\n치명타 저항 60%\n\n드랍 : 피리, 귀걸이, 갑옷, 신발"
+        },
+        { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+        }
+      ],
+      coords: [
+        [282,342],[184,210],[362,122],[554,204],
+      ]
+    },
+  }
+},
+{
+  id:"676",
+  name:"Lv.1300 [4대 재앙의 궁전]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/676/676.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "이프리트",
+      color: "#FF0000",
+      monsters: [
+        { name:"이프리트", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/676/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 8,985\n체력 : 2,423,702\n치명타 저항 50%\n\n불 에너지펫 필요\n\n드랍 : 활, 마술봉, 관, 신발, 화살"
+        }
+      ],
+      coords: [
+        [782,611]
+      ]
+    },
+	B: {
+      name: "포세이돈",
+      color: "#FFA500",
+      monsters: [
+        { name:"포세이돈", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/676/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 6,683\n체력 : 3,324,302\n치명타 저항 70%\n\n드랍 : 한손검, 메이스, 손톱무기, 귀걸이, 공용 갑옷, 어깨 문신"
+        }
+      ],
+      coords: [
+        [272,411]
+      ]
+    },
+	C: {
+      name: "파즈즈",
+      color: "#FFFF00",
+      monsters: [
+        { name:"파즈즈", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/676/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 7,046\n체력 : 2,337,482\n치명타 저항 40%\n\n저하계 저항 필요\n\n드랍 : 날개, 발톱, 채찍, 투구"
+        }
+      ],
+      coords: [
+        [792,184]
+      ]
+    },
+	D: {
+      name: "가이아",
+      color: "#0000FF",
+      monsters: [
+        { name:"가이아", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/676/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 7,938\n체력 : 2,919,562\n치명타 저항 70%\n\n드랍 : 양손검, 지팡이, 낫, 책, 장갑 대용, 신발, 팔문신"
+        }
+      ],
+      coords: [
+        [1227,399]
+      ]
+    },
+  }
+},
+{
+  id:"680",
+  name:"Lv.1350 [시간 속의 숲 F4]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/680.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "숲 + 속박",
+      color: "#FF0000",
+      monsters: [
+        { name:"거짓의 숲", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 9,562\n체력 : 3,406,465\n치명타 저항 75%\n\n드랍 : 창, 지팡이, 책, 벨트, 귀걸이"
+        },
+        { name:"숲의 속박", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 9,970\n체력 : 3,324,169\n치명타 저항 35%\n\n드랍 : 한손검, 단도, 손톱무기, 목걸이, 장갑, 화살"
+        }
+      ],
+      coords: [
+        [126,152], [238,149], [134,264], [234,261], [188,206], [358,143], [480,236], [349,281], [389,338], [157,405], 
+		[751,138], [860,139], [762,207], [844,205], [805,174], [396,489], [498,575], [573,613], [637,650]
+      ]
+    },
+	B: {
+      name: "숲 + 속박 + 역린 + 구릉",
+      color: "#FFA500",
+      monsters: [
+        { name:"거짓의 숲", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 9,562\n체력 : 3,406,465\n치명타 저항 75%\n\n드랍 : 창, 지팡이, 책, 벨트, 귀걸이"
+        },
+        { name:"숲의 속박", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 9,970\n체력 : 3,324,169\n치명타 저항 35%\n\n드랍 : 한손검, 단도, 손톱무기, 목걸이, 장갑, 화살"
+        },
+		{ name:"시간의 역린", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 9,970\n체력 : 3,345,211\n치명타 저항 10%\n\n드랍 : 이빨, 채찍, 장갑, 발톱"
+        },
+		{ name:"시간의 구릉", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 7,931\n체력 : 3,318,697\n치명타 저항 70%\n\n드랍 : 지팡이, 마술봉, 책, 관, 공용 갑옷, 방패"
+        },
+      ],
+      coords: [
+        [644,414], [769,413], [885,407], [997,405], [811,599], [810,670]
+      ]
+    },
+	C: {
+      name: "역린 + 구릉",
+      color: "#FFFF00",
+      monsters: [
+		{ name:"시간의 역린", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 9,970\n체력 : 3,345,211\n치명타 저항 10%\n\n드랍 : 이빨, 채찍, 장갑, 발톱"
+        },
+		{ name:"시간의 구릉", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 7,931\n체력 : 3,318,697\n치명타 저항 70%\n\n드랍 : 지팡이, 마술봉, 책, 관, 공용 갑옷, 방패"
+        },
+      ],
+      coords: [
+        [932,664], [1012,593], [1077,562], [1188,501], [1296,498]
+      ]
+    },
+	D: {
+      name: "역린",
+      color: "#0000FF",
+      monsters: [
+		{ name:"시간의 역린", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 9,970\n체력 : 3,345,211\n치명타 저항 10%\n\n드랍 : 이빨, 채찍, 장갑, 발톱"
+        }
+      ],
+      coords: [
+        [1207,138], [1306,137], [1481,190], [1483,252]
+      ]
+    },
+	E: {
+      name: "구릉",
+      color: "#800080",
+      monsters: [
+		{ name:"시간의 구릉", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 7,931\n체력 : 3,318,697\n치명타 저항 70%\n\n드랍 : 지팡이, 마술봉, 책, 관, 공용 갑옷, 방패"
+        }
+      ],
+      coords: [
+        [1188,281], [1278,309], [1364,317], [1465,376], [1439,402]
+      ]
+    },
+	F: {
+      name: "예지",
+      color: "#7CFC00",
+      monsters: [
+		{ name:"시간의 예지", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/680/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 8,475\n체력 : 2,634,802\n치명타 저항 5%\n\n빛 에너지펫 필요\n\n드랍 : 창, 채찍, 공용 갑옷, 방패, 반지"
+        }
+      ],
+      coords: [
+        [205,565], [220,660], [220,704], [328,625], [1360,679], [1471,680]
+      ]
+    },
+  }
+},
+{
+  id:"684",
+  name:"Lv.1400 [멸망한 도시 루미너스]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/684.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "탈옥수 + 해골 병사",
+      color: "#FF0000",
+      monsters: [
+        { name:"탈옥수", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 11,991\n체력 : 3,650,761\n치명타 저항 60%\n\n드랍 : 활, 이빨, 단도, 전용 갑옷, 방패"
+        },
+        { name:"해골 병사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+          info:"필요 운 : 10,864\n체력 : 3,259,849\n치명타 저항 45%\n\n드랍 : 양손검, 메이스, 낫, 장갑 대용, 신발, 화살"
+        }
+      ],
+      coords: [
+        [1399,645], [1111,743], [848,751], [574,713], [375,542], [387,350], [521,190], [746,115], [895,277], [1137,231], [1408,330]
+      ]
+    },
+	B: {
+      name: "오징어 + 게",
+      color: "#FFA500",
+      monsters: [
+        { name:"거대 오징어", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 5,791\n체력 : 3,278,162\n치명타 저항 30%\n\n물 에너지펫 필요\n\n드랍 : 슬링, 채찍, 벨트, 팔찌, 탄환"
+        },
+        { name:"난폭한 게", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+          info:"필요 운 : 7,905\n체력 : 3,477,522\n치명타 저항 40%\n\n드랍 : 양손검, 단도, 낫, 발톱, 신발, 방패"
+        }
+      ],
+      coords: [
+        [172,713], [167,515], [209,285], [260,77]
+      ]
+    },
+	C: {
+      name: "마도사",
+      color: "#0000FF",
+      monsters: [
+		{ name:"도망친 마도사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 11,850\n체력 : 3,899,302\n치명타 저항 50%\n\n드랍 : 양손검, 지팡이, 낫, 책, 전용 갑옷, 브로치"
+        }
+      ],
+      coords: [
+        [821,548],[732,415]
+      ]
+    },
+  }
+},
+];
+
+const dungeonListEl   = document.getElementById("dungeonList");
+const mapWrap         = document.getElementById("mapWrap");
+const mapImgEl        = document.getElementById("mapImg");
+const overlayEl       = document.getElementById("overlay");
+const tooltipEl       = document.getElementById("tooltip");
+const tipBodyEl       = document.getElementById("tipBody");
+const groupSectionsEl = document.getElementById("groupSections");
+const dungeonMemoEl   = document.getElementById("dungeonMemo");
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+function buildPoints(d){
+  d.points = [];
+  for (const [g, gd] of Object.entries(d.groups)) {
+    const color = gd.color || "#666";
+    (gd.coords || []).forEach((c, idx) => {
+      const x = c?.[0], y = c?.[1];
+      if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+      d.points.push({ id:`p${g}_${idx+1}`, group:g, x, y, color });
+    });
+  }
+}
+
+function updateScale(){
+  const viewW = mapImgEl.getBoundingClientRect().width || 1;
+  const naturalW = mapImgEl.naturalWidth || viewW || 1;
+  currentScale = viewW / naturalW;
+}
+
+function renderDungeonList(){
+  dungeonListEl.innerHTML = "";
+  DUNGEONS.forEach(d=>{
+    const el = document.createElement("div");
+    el.className = "dungeon-item";
+    el.dataset.id = d.id;
+    el.textContent = d.name;
+    el.onclick = () => selectDungeon(d.id);
+    dungeonListEl.appendChild(el);
+  });
+}
+
+function setActiveDungeonUI(id){
+  [...dungeonListEl.querySelectorAll(".dungeon-item")].forEach(el=>{
+    el.classList.toggle("active", el.dataset.id === id);
+  });
+}
+
+function renderDungeonMemo(){
+  const memo = currentDungeon?.memo ?? "";
+  dungeonMemoEl.innerHTML = escapeHtml(memo).replaceAll("\n","<br>");
+}
+
+/* ===== 하단 hover: 몬스터 기준 ===== */
+function setHoverMonster(monsterName){
+  activeMonsterHover = monsterName || null;
+  applyFilter();
+}
+function clearHoverMonster(){
+  activeMonsterHover = null;
+  applyFilter();
+}
+
+/* ===== 점/하단 dim 처리: "몬스터 이름" 기준 ===== */
+function applyFilter(){
+  const dots = overlayEl.querySelectorAll(".dot");
+
+  if (!activeMonsterHover) {
+    dots.forEach(d => d.classList.remove("dim"));
+    return;
+  }
+
+  // hover된 몬스터가 포함된 그룹들
+  const hitGroups = new Set();
+  for (const [g, gd] of Object.entries(currentDungeon?.groups ?? {})) {
+    const monsters = gd.monsters ?? [];
+    if (monsters.some(m => String(m?.name ?? "").trim() === activeMonsterHover)) {
+      hitGroups.add(g);
+    }
+  }
+
+  dots.forEach(d=>{
+    d.classList.toggle("dim", !hitGroups.has(d.dataset.group));
+  });
+}
+
+function selectDungeon(id){
+  currentDungeon = DUNGEONS.find(d=>d.id===id);
+  if (!currentDungeon) return;
+
+  activeMonsterHover = null;
+  hideTooltip();
+  setActiveDungeonUI(id);
+
+  buildPoints(currentDungeon);
+  renderDungeonMemo();
+
+mapImgEl.onload = () => {
+  // ✅ 원본 폭 이상으로는 커지지 않게 제한
+  const nw = mapImgEl.naturalWidth || 1600;
+  mapWrap.style.maxWidth = nw + "px";
+
+  updateScale();
+  renderPoints();
+  renderBelowMonsters();
+};
+  mapImgEl.src = currentDungeon.minimap;
+}
+
+/* ===== Tooltip (그룹 기준 유지) ===== */
+function showTooltipForGroup(group, x, y){
+  const monsters = currentDungeon?.groups?.[group]?.monsters ?? [];
+
+  tipBodyEl.innerHTML = monsters.length
+    ? `<div class="monster-list">${monsters.map(renderMonsterCard).join("")}</div>`
+    : `<div style="padding:6px;font-size:13px;">몬스터 정보 없음</div>`;
+
+  tooltipEl.style.display = "block";
+  tooltipEl.setAttribute("aria-hidden","false");
+  moveTooltip(x,y);
+}
+
+function moveTooltip(x,y){
+  if (tooltipEl.style.display !== "block") return;
+
+  const pad = 14;
+  tooltipEl.style.left = "0px";
+  tooltipEl.style.top  = "0px";
+  const rect = tooltipEl.getBoundingClientRect();
+
+  let left = x + pad;
+  let top  = y + pad;
+
+  if (left + rect.width > window.innerWidth - 6) left = x - rect.width - pad;
+  if (top  + rect.height > window.innerHeight - 6) top  = y - rect.height - pad;
+
+  tooltipEl.style.left = Math.max(6, left) + "px";
+  tooltipEl.style.top  = Math.max(6, top)  + "px";
+}
+
+function hideTooltip(){
+  tooltipEl.style.display = "none";
+  tooltipEl.setAttribute("aria-hidden","true");
+}
+
+/* ===== 지도 점 렌더 ===== */
+function renderPoints(){
+  overlayEl.innerHTML = "";
+
+  currentDungeon.points.forEach(p=>{
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    dot.dataset.group = p.group;
+    dot.style.background = p.color;
+
+    dot.style.left = (p.x * currentScale) + "px";
+    dot.style.top  = (p.y * currentScale) + "px";
+
+    dot.onmouseenter = (e) => showTooltipForGroup(p.group, e.clientX, e.clientY);
+    dot.onmousemove  = (e) => moveTooltip(e.clientX, e.clientY);
+    dot.onmouseleave = hideTooltip;
+
+    overlayEl.appendChild(dot);
+  });
+
+  applyFilter();
+}
+
+/* ===== 카드 UI 재사용 (팝업/하단 동일) ===== */
+function renderThumbWithOverlay(m){
+  const img = m.img ? `<img src="${escapeHtml(m.img)}" alt="">` : ``;
+  const icon = m.raceIcon ? `<img class="race-icon" src="${escapeHtml(m.raceIcon)}" alt="">` : ``;
+  return `
+    <div class="thumb">
+      ${img}
+      <div class="thumb-overlay">
+        ${icon}
+        <div class="monster-name">${escapeHtml(m.name ?? "")}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMonsterCard(m){
+  return `
+    <div class="monster-card">
+      ${renderThumbWithOverlay(m)}
+      <div class="info"><div class="meta">${escapeHtml(m.info ?? "")}</div></div>
+    </div>
+  `;
+}
+
+/* ✅ 하단: 몬스터(종류) 중복 제거해서 1번씩만 표시 */
+function renderBelowMonsters(){
+  groupSectionsEl.innerHTML = "";
+
+  const monsterMap = new Map(); // name -> 대표 몬스터 객체
+
+  // 던전 전체 그룹을 돌며 monster.name 기준으로 중복 제거
+  for (const gd of Object.values(currentDungeon.groups)) {
+    for (const m of (gd.monsters ?? [])) {
+      const nm = String(m?.name ?? "").trim();
+      if (!nm) continue;
+
+      // display:false면 하단에선 제외 (툴팁은 그대로)
+      if (m?.display === false) continue;
+
+      if (!monsterMap.has(nm)) monsterMap.set(nm, m);
+    }
+  }
+
+  const monsterNames = [...monsterMap.keys()];
+
+  monsterNames.forEach(nm=>{
+    const m = monsterMap.get(nm);
+
+    const sec = document.createElement("div");
+    sec.className = "group-section";
+    sec.dataset.monster = nm;
+
+    sec.addEventListener("mouseenter", () => setHoverMonster(nm));
+    sec.addEventListener("mouseleave", () => clearHoverMonster());
+
+    sec.innerHTML = `
+	  <div class="monster-list">
+		   ${renderMonsterCard(m)}
+	  </div>
+	`;
+
+    groupSectionsEl.appendChild(sec);
+  });
+
+  applyFilter();
+}
+
+/* ===== Editor (UI 없음) ===== */
+mapWrap.addEventListener("click",(e)=>{
+  if(!EDIT_MODE || !currentDungeon) return;
+
+  const rect = mapImgEl.getBoundingClientRect();
+  const vx = e.clientX - rect.left;
+  const vy = e.clientY - rect.top;
+  if(vx<0||vy<0||vx>rect.width||vy>rect.height) return;
+
+  updateScale();
+
+  const x = Math.round(vx / currentScale);
+  const y = Math.round(vy / currentScale);
+
+  const group = Object.keys(currentDungeon.groups)[0]; // 기본 첫 그룹
+  currentDungeon.groups[group].coords.push([x,y]);
+
+  console.log(`[${currentDungeon.id}] ${group}.coords add: [${x},${y}]`);
+
+  buildPoints(currentDungeon);
+  renderPoints();
+  renderBelowMonsters();
+});
+
+window.addEventListener("resize",()=>{
+  if(!currentDungeon) return;
+  updateScale();
+  renderPoints();
+});
+
+/* init */
+renderDungeonList();
+selectDungeon(DUNGEONS[0].id);
+</script>
+</body>
+</html>
