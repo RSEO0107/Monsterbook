@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dungeon Minimaps</title>
+<title>RSEO 사냥터 도감</title>
 
 <style>
-:root { --sidebar: minmax(240px, 280px); }
+:root { --sidebar: minmax(240px, 290px); }
 body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
 .app{ display:grid; grid-template-columns:var(--sidebar) 1fr; height:100vh; }
 
@@ -140,7 +140,7 @@ body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; 
   box-shadow:0 10px 30px rgba(0,0,0,.15);
   padding:10px;
   max-width:min(740px,90vw);
-  max-height:min(70vh,7000px);
+  max-height:min(700vh,7000px);
 }
 .tooltip .scroll{ overflow:auto; max-height:inherit; }
 
@@ -263,7 +263,7 @@ const DUNGEONS = [
           { name:"리자드 워리어", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
             info:"필요 운 : 3,628\n체력 : 693,000\n치명타 저항 15%\n\n드랍 : 양손검, 창, 낫, 장갑 대용, 공용 갑옷, 어깨 문신" },
           { name:"리자드 트루퍼", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
-            info:"필요 운 : 3,978\n체력 : 780,600\n치명타 저항 20%\n\n드랍 : 활, 마술봉, 목걸이, 전용갑옷, 화살" },
+            info:"필요 운 : 3,978\n체력 : 780,600\n치명타 저항 20%\n\n드랍 : 활, 마술봉, 목걸이, 전용 갑옷, 화살" },
         ],
         coords: [
           [1161,780],[1309,782],[1472,705],[1496,556],[1426,463],[1326,383],[1243,255],
@@ -426,7 +426,7 @@ const DUNGEONS = [
         color: "#fff34f",
         monsters: [
           { name:"다크 파이어", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/660/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
-            info:"필요 운 : 6,958\n체력 : 1,096,001\n치명타 저항 45%\n\n어둠 에너지펫 필요\n\n드랍 : 창, 날개, 전용갑옷, 반지" },
+            info:"필요 운 : 6,958\n체력 : 1,096,001\n치명타 저항 45%\n\n어둠 에너지펫 필요\n\n드랍 : 창, 날개, 전용 갑옷, 반지" },
         ],
         coords: [
           [315,528],[1069,502],[1202,145],[546,229]
@@ -757,6 +757,486 @@ const DUNGEONS = [
     },
   }
 },
+{
+  id:"688",
+  name:"Lv.1450 [악마들의 은신처]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/688.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "사탄",
+      color: "#FF0000",
+      monsters: [
+        { name:"사탄", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 8,441\n체력 : 4,016,410\n치명타 저항 75%\n\n불 에너지펫 필요\n저하계 저항 필요\n\n드랍 : 지팡이, 채찍, 책, 벨트, 십자가, 반지"
+        },
+      ],
+      coords: [
+        [745,547], [811,368], [927,263], [695,243]
+      ]
+    },
+	B: {
+      name: "라티안",
+      color: "#FFA500",
+      monsters: [
+        { name:"라티안", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 9,900\n체력 : 3,918,209\n치명타 저항 60%\n\n드랍 : 단도, 피리, 관, 신발, 탄환"
+        },
+      ],
+      coords: [
+        [1063,666], [1288,554], [1483,436], [1486,257], [1189,129]
+      ]
+    },
+	C: {
+      name: "사탄 + 라티안",
+      color: "#0000FF",
+      monsters: [
+        { name:"사탄", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 8,441\n체력 : 4,016,410\n치명타 저항 75%\n\n불 에너지펫 필요\n저하계 저항 필요\n\n드랍 : 지팡이, 채찍, 책, 벨트, 십자가, 반지"
+        },
+		{ name:"라티안", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 9,900\n체력 : 3,918,209\n치명타 저항 60%\n\n드랍 : 단도, 피리, 관, 신발, 탄환"
+        }
+      ],
+      coords: [
+        [1180,342]
+      ]
+    },
+	D: {
+      name: "사냥꾼 + 하수인",
+      color: "#7CFC00",
+      monsters: [
+        { name:"사냥꾼", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 9,755\n체력 : 3,866,721\n치명타 저항 75%\n\n드랍 : 한손검, 활, 손톱무기, 장갑, 팔찌, 팔문신, 화살"
+        },
+		{ name:"하수인", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+          info:"필요 운 : 9,317\n체력 : 3,589,201\n치명타 저항 50%\n\n드랍 : 단도, 마술봉, 발톱, 전용 갑옷, 화살"
+        }
+      ],
+      coords: [
+        [505,123], [233,267], [132,405], [181,544], [421,399], [425,657]
+      ]
+    },
+  }
+},
+{
+  id:"692",
+  name:"Lv.1500 [망각의 낙원]",
+  minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/692/692.png",
+  memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+  groups: {
+    A: {
+      name: "심판",
+      color: "#FF0000",
+      monsters: [
+        { name:"심판하는 자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/692/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 15,638\n체력 : 7,199,002\n치명타 저항 80%\n\n드랍 : 단도, 귀걸이, 장갑, 신발"
+        }
+      ],
+      coords: [
+        [948,654], [1107,624], [1196,514], [938,391], [1081,390], [1195,300], [1183,172]
+      ]
+    },
+	B: {
+      name: "용서",
+      color: "#FFA500",
+      monsters: [
+        { name:"용서하는 자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/692/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+          info:"필요 운 : 14,883\n체력 : 7,092,002\n치명타 저항 80%\n\n드랍 : 창, 활, 이빨, 날개, 관, 망토"
+        }
+      ],
+      coords: [
+        [762,696], [630,618], [798,520], [729,401], [378,607], [334,501], [358,355], [527,266]
+      ]
+    },
+	C: {
+      name: "타락",
+      color: "#FFFF00",
+      monsters: [
+        { name:"타락하는 자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/692/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 15,789\n체력 : 7,335,002\n치명타 저항 80%\n\n드랍 : 한손검, 채찍, 손톱무기, 투구, 발톱"
+        }
+      ],
+      coords: [
+        [999,198], [779,137], [650,134], [713,206], [491,118]
+      ]
+    },
+	D: {
+      name: "조롱",
+      color: "#0000FF",
+      monsters: [
+        { name:"조롱하는 자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/692/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+          info:"필요 운 : 15,940\n체력 : 7,200,922\n치명타 저항 60%\n\n드랍 : 양손검, 지팡이, 낫, 책, 목걸이, 반지"
+        }
+      ],
+      coords: [
+        [300,184], [200,289], [173,417], [139,553], [191,704], [330,753], [508,742]
+      ]
+    },
+  }
+},
+  {
+    id:"696",
+    name:"Lv.1500 [황천으로 돌아가는 협곡]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/696.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "텔레포트",
+        color: "#fff34f",
+        monsters: [
+          { name:"황천의 안내인", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"처치시 아래 노란색 점 위치로 텔레포트" },
+        ],
+        coords: [
+          [413,85]
+        ]
+      },
+      B:{
+        name: "망자 + 살덩이 + 기사",
+        color:"#18b6ff",
+        monsters:[
+          { name:"진흙의 망자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 7,640\n체력 : 4,976,791\n치명타 저항 75%\n\n드랍 : 이빨, 단검, 투구, 발톱" },
+          { name:"신음하는 살덩이", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 7,791\n체력 : 5,298,090\n치명타 저항 55%\n\n드랍 : 슬링, 마술봉, 목걸이, 벨트, 브로치, 탄환" },
+		  { name:"타락한 기사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 9,904\n체력 : 5,391,775\n치명타 저항 80%\n\n드랍 : 메이스, 마술봉, 공용 갑옷, 발톱, 화살" },
+        ],
+        coords:[
+          [315,759], [293,651], [322,533], [297,432], [346,329], [292,234], [245,140]
+        ]
+      },
+	  C:{
+        name: "점",
+        color:"#fff34f",
+        monsters:[],
+        coords:[
+          [191,851]
+        ]
+      }
+    }
+  },
+  {
+    id:"700",
+    name:"Lv.1550 [데프힐스 마법 광산 B1]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/700/700.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "마술사",
+        color: "#fff34f",
+        monsters: [
+          { name:"경질화 마술사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/700/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 11,914\n체력 : 12,043,803\n치명타 저항 60%\n\n어둠 에너지펫 필요\n\n드랍 : 망토, 장갑, 팔찌, 어깨 문신, 탄환, 반지" },
+        ],
+        coords: [
+          [558,638], [213,617], [207,281], [526,191], [993,214], [1370,379], [1162,661]
+        ]
+      },
+      B:{
+        name: "수호병",
+        color:"#18b6ff",
+        monsters:[
+          { name:"경질화 수호병", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/700/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 11,914\n체력 : 13,772,559\n치명타 저항 85%\n\n드랍 : 한손검, 활, 손톱무기, 목걸이, 공용 갑옷, 방패" },
+        ],
+        coords:[
+          [120,448], [740,292], [1194,489]
+        ]
+      },
+    }
+  },
+  {
+    id:"704",
+    name:"Lv.1600 [데프힐스 마법 광산 B2]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/704/704.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "개구리",
+        color: "#fff34f",
+        monsters: [
+          { name:"경질화 개구리", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/704/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+            info:"필요 운 : 11,942\n체력 : 12,754,563\n치명타 저항 50%\n\n저하계 저항 필요\n\n드랍 : 단도, 장갑 대용, 발톱, 신발, 십자가, 팔 문신" },
+        ],
+        coords: [
+          [1274,554], [1349,373], [1291,213], [863,254], [831,441], [895,614]
+        ]
+      },
+      B:{
+        name: "대해골 + 전갈",
+        color:"#18b6ff",
+        monsters:[
+          { name:"경질화 대해골", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/704/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 15,964\n체력 : 13,270,053\n치명타 저항 80%\n\n저하계 저항 필요\n\n드랍 : 지팡이, 마술봉, 책, 관, 전용 갑옷" },
+          { name:"경질화 전갈", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/704/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/beast.png",
+            info:"필요 운 : 10,655\n체력 : 13,023,003\n치명타 저항 70%\n\n대지 에너지펫 필요\n\n드랍 : 창, 활, 귀걸이, 투구, 방패" },
+        ],
+        coords:[
+          [418,610], [243,383], [462,212]
+        ]
+      },
+    }
+  },
+  {
+    id:"708",
+    name:"Lv.1650 [참회 없는 예배당]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/708/708.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "심판관 + 신수",
+        color: "#fff34f",
+        monsters: [
+          { name:"심판관", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/708/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+            info:"필요 운 : 15,102\n체력 : 7,592,043\n치명타 저항 60%\n\n드랍 : 피리, 슬링, 공용 갑옷, 어깨 문신, 방패" },
+          { name:"신수", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/708/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+            info:"필요 운 : 14,936\n체력 : 9,043,203\n치명타 저항 60%\n\n저하계 저항 필요\n\n드랍 : 창, 활, 이빨, 관, 망토" },
+        ],
+        coords: [
+          [357,377], [451,464], [231,524], [411,578], [482,611], [569,522], [585,704], [710,579], [593,399], [716,457], [840,516], [870,643]
+        ]
+      },
+      B:{
+        name: "간신 + 타락 천사",
+        color:"#18b6ff",
+        monsters:[
+          { name:"간신", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/708/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 16,927\n체력 : 8,127,003\n치명타 저항 75%\n\n저하계 저항 필요\n\n드랍 : 양손검, 활, 낫, 장갑, 브로치, 십자가" },
+          { name:"타락 천사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/708/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 15,600\n체력 : 7,763,002\n치명타 저항 70%\n\n드랍 : 날개, 목걸이, 벨트, 공용 갑옷, 팔찌, 팔 문신" },
+        ],
+        coords:[
+          [680,209], [828,256], [730,337], [851,390], [953,450], [949,138], [955,313], [1064,228], [1150,270], [1352,335], [1104,383], [1195,466]
+        ]
+      },
+    }
+  },
+  {
+    id:"712",
+    name:"Lv.1700 [물질계와 정신계의 틈새]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/712/712.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "지배자 + 영체",
+        color: "#fff34f",
+        monsters: [
+          { name:"지배자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/712/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 16,040\n체력 : 9,079,238\n치명타 저항 90%\n\n드랍 : 이빨, 채찍, 전용 갑옷, 브로치, 반지" },
+          { name:"영체", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/712/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 16,552\n체력 : 8,995,862\n치명타 저항 80%\n\n저하계 저항 필요\n\n드랍 : 날개, 피리, 귀걸이, 망토, 브로치, 열쇠" },
+        ],
+        coords: [
+          [920,719], [1248,702], [1477,572], [1017,472], [1223,352], [1458,372], [1371,182], [985,185]
+        ]
+      },
+      B:{
+        name: "마왕 + 비상식량",
+        color:"#18b6ff",
+        monsters:[
+          { name:"마왕", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/712/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 17,920\n체력 : 9,617,401\n치명타 저항 100%\n\n드랍 : 한손검, 채찍, 손톱무기, 발톱, 화살" },
+          { name:"비상 식량", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/712/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 17,236\n체력 : 9,741,603\n치명타 저항 75%\n\n저하계 저항 필요\n\n드랍 : 망토, 벨트, 장갑, 신발, 탄환, 반지" },
+        ],
+        coords:[
+          [696,180], [394,220], [142,210], [326,360], [125,540], [253,709], [591,652], [675,498]
+        ]
+      },
+    }
+  },
+  {
+    id:"716",
+    name:"Lv.1750 [왜곡된 지하 공간]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/716.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "침식",
+        color: "#FF0000",
+        monsters: [
+          { name:"침식", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 20,525\n체력 : 10,546,751\n치명타 저항 70%\n\n물 에너지펫 필요\n\n드랍 : 망토, 장갑, 팔찌, 어깨 문신, 탄환, 반지" },
+        ],
+        coords: [
+          [612,30], [508,30], [387,30], [279,30], [183,30], [75,30],[1440,307],[1508,375],[1520,431],[1456,470]
+        ]
+      },
+      B:{
+        name: "갈망",
+        color:"#FFA500",
+        monsters:[
+          { name:"갈망", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/g.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+            info:"필요 운 : 18,063\n체력 : 10,782,721\n치명타 저항 7%\n\n드랍 : 마술봉, 단도, 신발" },
+        ],
+        coords:[
+          [615,303], [505,303], [385,303], [280,303], [177,303], [59,303],[1191,716]
+        ]
+      },
+      C:{
+        name: "연모",
+        color:"#FFFF00",
+        monsters:[
+          { name:"연모", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 17,007\n체력 : 9,426,101\n치명타 저항 60%\n\n저하계 저항 필요\n\n드랍 : 피리, 귀걸이, 공용 갑옷, 신발, 방패" },
+        ],
+        coords:[
+          [60,753], [60,679], [60,605], [60,531], [60,457], [60,382]
+        ]
+      },
+      D:{
+        name: "원한",
+        color:"#7CFC00",
+        monsters:[
+          { name:"원한", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 16,656\n체력 : 9,212,521\n치명타 저항 70%\n\n드랍 : 양손검, 채찍, 낫" },
+        ],
+        coords:[
+          [255,376], [255,451], [255,526], [255,601], [255,675], [255,749]
+        ]
+      },
+      E:{
+        name: "허식",
+        color:"#0000FF",
+        monsters:[
+          { name:"허식", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 17,183\n체력 : 9,819,251\n치명타 저항 70%\n\n드랍 : 활, 목걸이, 팔찌" },
+        ],
+        coords:[
+          [440,379], [440,453], [440,527], [440,601], [440,674], [440,748]
+        ]
+      },
+     F:{
+        name: "오만",
+        color:"#4B0082",
+        monsters:[
+          { name:"오만", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/f.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 17,887\n체력 : 9,714,761\n치명타 저항 70%\n\n드랍 : 한손검, 창, 손톱무기, 투구, 브로치" },
+        ],
+        coords:[
+          [615,377], [615,450], [615,524], [615,597], [615,670], [615,744],[1259,612],[1266,702]
+        ]
+      },
+     G:{
+        name: "집착",
+        color:"#800080",
+        monsters:[
+          { name:"집착", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 16,128\n체력 : 9,383,461\n치명타 저항 50%\n\n드랍 : 날개, 슬링, 목걸이, 망토, 벨트, 공용 갑옷" },
+        ],
+        coords:[
+          [617,165], [508,165], [387,165], [278,165], [183,165], [73,165]
+        ]
+      },
+     H:{
+        name: "짬뽕",
+        color:"#FFFFFF",
+        monsters:[
+          { name:"침식", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
+            info:"필요 운 : 20,525\n체력 : 10,546,751\n치명타 저항 70%\n\n물 에너지펫 필요\n\n드랍 : 망토, 장갑, 팔찌, 어깨 문신, 탄환, 반지" },
+          { name:"갈망", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/g.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/god.png",
+            info:"필요 운 : 18,063\n체력 : 10,782,721\n치명타 저항 7%\n\n드랍 : 마술봉, 단도, 신발" },
+          { name:"연모", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 17,007\n체력 : 9,426,101\n치명타 저항 60%\n\n저하계 저항 필요\n\n드랍 : 피리, 귀걸이, 공용 갑옷, 신발, 방패" },
+		  { name:"원한", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 16,656\n체력 : 9,212,521\n치명타 저항 70%\n\n드랍 : 양손검, 채찍, 낫" },
+          { name:"허식", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
+            info:"필요 운 : 17,183\n체력 : 9,819,251\n치명타 저항 70%\n\n드랍 : 활, 목걸이, 팔찌" },
+          { name:"오만", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/f.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 17,887\n체력 : 9,714,761\n치명타 저항 70%\n\n드랍 : 한손검, 창, 손톱무기, 투구, 브로치" },
+          { name:"집착", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 16,128\n체력 : 9,383,461\n치명타 저항 50%\n\n드랍 : 날개, 슬링, 목걸이, 망토, 벨트, 공용 갑옷" },
+        ],
+        coords:[
+          [865,646], [1062,694], [1089,587], [1203,436], [1445,683], [1059,369], [890,366], [1042,128], [1394,170]
+        ]
+      },
+	  I:{
+        name: "점",
+        color:"#4FC3F7",
+        monsters:[          
+			{ name:"조형물", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/716/i.png",
+            info:"클릭시 중앙 하늘색 점으로 텔레포트" },
+			],
+        coords:[
+          [1321,516]
+        ]
+      },
+	  J:{
+        name: "점",
+        color:"#4FC3F7",
+        monsters:[],
+        coords:[
+          [776,89]
+        ]
+      }
+    }
+  },
+  {
+    id:"720",
+    name:"Lv.1800 [마석도시 아벨란트]",
+    minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/720/720.png",
+    memo:"예) A그룹은 외곽 루트 / B그룹은 중앙 방. 주의: 공포 상태이상 대비.",
+    groups: {
+      A: {
+        name: "현자",
+        color: "#FF0000",
+        monsters: [
+          { name:"현자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/720/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 14,206\n체력 : 12,781,675\n치명타 저항60%\n\n불 에너지펫 필요\n\n드랍 : 지팡이, 슬링, 책, 장갑, 발톱, 탄환" },
+        ],
+        coords: [
+          [252,696], [249,515], [252,341], [823,95], [978,197], [887,474], [1414,174], [1329,472], [837,701]
+        ]
+      },
+      B: {
+        name: "감독관",
+        color: "#FFA500",
+        monsters: [
+          { name:"감독관", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/720/e.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 17,462\n체력 : 9,741,378\n치명타 저항70%\n\n드랍 : 메이스, 날개, 목걸이, 관, 전용 갑옷, 십자가" },
+        ],
+        coords: [
+          [1522,255],[1522,397],[113,79], [252,97], [171,161], [1266,275], [1030,583], [1185,586], [1035,721], [1176,727]
+        ]
+      },
+      C: {
+        name: "노동자",
+        color: "#FFFF00",
+        monsters: [
+          { name:"노동자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/720/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 17,824\n체력 : 9,328,803\n치명타 저항60%\n\n드랍 : 양손검, 이빨, 피리, 낫, 발톱" },
+        ],
+        coords: [
+          [92,676],[92,524],[92,360],[1134,286]
+        ]
+      },
+      D: {
+        name: "귀족",
+        color: "#7CFC00",
+        monsters: [
+          { name:"귀족", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/720/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 18,548\n체력 : 10,111,346\n치명타 저항80%\n\n드랍 : 한손검, 창, 손톱무기, 투구, 망토, 장갑대용" },
+        ],
+        coords: [
+          [440,317],[1467,564],[1467,742],[1178,382],[1114,655]
+        ]
+      },
+      E: {
+        name: "은둔자",
+        color: "#0000FF",
+        monsters: [
+          { name:"은둔자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/720/d.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
+            info:"필요 운 : 18,005\n체력 : 9,284,440\n치명타 저항70%\n\n드랍 : 단도, 마술봉, 전용갑옷, 발톱, 화살" },
+        ],
+        coords: [
+          [407,495], [537,493], [678,490], [688,357], [689,235], [553,117], [632,49], [993,32], [1174,41], [1317,36], [1495,36]
+        ]
+      },
+    }
+  },
 ];
 
 const dungeonListEl   = document.getElementById("dungeonList");
