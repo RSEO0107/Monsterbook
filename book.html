@@ -77,9 +77,7 @@ body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; 
   line-height:1.5;
   color:#666;
   padding:6px 10px;
-  border-radius:12px;
-  background:#fff;
-  border:1px solid #eee;
+  margin-bottom: 5px
 }
 .dungeon-memo:empty{ display:none; }
 
@@ -206,22 +204,62 @@ body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; 
   .below{ overflow:visible; }
   .group-sections{ overflow:visible; padding-right:0; }
 }
+
+/* ✅ 사이드바 상단 검색 */
+.sidebar-search{
+  padding: 10px 12px 6px;
+}
+.sidebar-search input{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+  outline: none;
+  font-size: 13px;
+  text-align: center;
+}
+.sidebar-search input:focus{
+  border-color:#333;
+}
+
+.sidebar-title{
+  text-align: center;
+  font-weight: 800;
+  font-size: 15px;
+  margin: 8px 0 10px;
+  color: #111;
+}
+
+mark.hit{
+  background: transparent;
+  color: #e11;         /* 빨간색 */
+  font-size: 1.5em;   /* 글자 살짝 키움 */
+  font-weight: 700;
+  padding: 0;
+}
+
 </style>
 </head>
 
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <h3>1000~1800 드랍테이블</h3>
-    <div id="dungeonList"></div>
-  </aside>
+  <div class="sidebar">
+  <div class="sidebar-search">
+    <input id="searchBox" type="search" placeholder="드랍 검색 (예: 활, 창, 화살)" autocomplete="off">
+  </div>
+
+  <div class="sidebar-title">1000~1800 드랍테이블</div>
+  <div id="dungeonList"></div>
+</div>
 
   <main class="main">
+    <div class="map-toolbar">
     <div class="map-wrap" id="mapWrap">
       <img id="mapImg" class="map-img" alt="minimap">
       <div id="overlay" class="overlay"></div>
     </div>
-
     <!-- ✅ DUNGEONS에 적은 메모 표시 -->
     <div id="dungeonMemo" class="dungeon-memo"></div>
 
@@ -240,7 +278,7 @@ body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; 
 /* =========================
    배포 시 여기만 수정
    ========================= */
-const EDIT_MODE = true; // true = 좌표 찍기 / false = 일반 사용자
+const EDIT_MODE = false; // true = 좌표 찍기 / false = 일반 사용자
 /* ========================= */
 
 let currentDungeon = null;
@@ -280,7 +318,7 @@ const DUNGEONS = [
           { name:"저승의 기사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
             info:"필요 운 : 7,890\n체력 : 3,374,401\n치명타 저항 50%\n\n드랍 : 양손검, 이빨, 메이스, 발톱, 채찍, 갑옷" },
           { name:"이블아이", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/652/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
-            info:"필요 운 : 7,371\n체력 : 3,193,108\n치명타 저항 35%\n\n대지 에너지펫 필요\n\n드랍 : 날개, 단검, 관, 투구" },
+            info:"필요 운 : 7,371\n체력 : 3,193,108\n치명타 저항 35%\n\n대지 에너지펫 필요\n\n드랍 : 날개, 단도, 관, 투구" },
         ],
         coords:[[1027,459],[971,588],[854,449],[726,427],[591,393],[444,332],[311,355],[286,473],
           [445,529],[563,570],[706,590],[825,619]]
@@ -341,7 +379,7 @@ const DUNGEONS = [
         color:"#FFA500",
         monsters:[
           { name:"레드아이 요원", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
-            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단검, 귀걸이, 벨트, 탄환, 어깨 문신" },
+            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단도, 귀걸이, 벨트, 탄환, 어깨 문신" },
         ],
         coords:[
           [929,619]
@@ -367,7 +405,7 @@ const DUNGEONS = [
             display:false /* ✅ 하단에선 숨김(예시) */
           },
           { name:"레드아이 요원", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
-            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단검, 귀걸이, 벨트, 탄환, 어깨 문신",
+            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단도, 귀걸이, 벨트, 탄환, 어깨 문신",
             display:false /* ✅ 하단에선 숨김(예시) */
           },
         ],
@@ -401,7 +439,7 @@ const DUNGEONS = [
             display:false /* ✅ 하단에선 숨김(예시) */
           },
           { name:"레드아이 요원", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/human.png",
-            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단검, 귀걸이, 벨트, 탄환, 어깨 문신",
+            info:"필요 운 : 6,891\n체력 : 1,222,401\n치명타 저항 20%\n\n드랍 : 단도, 귀걸이, 벨트, 탄환, 어깨 문신",
             display:false /* ✅ 하단에선 숨김(예시) */
           },
           { name:"실험체", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/656/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
@@ -504,7 +542,7 @@ const DUNGEONS = [
           info:"필요 운 : 8,932\n체력 : 2,388,901\n치명타 저항 55%\n\n저하계 저항 필요\n\n드랍 : 슬링, 목걸이, 벨트, 팔찌"
         },
         { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
-          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단도, 관, 투구"
         }
       ],
       coords: [
@@ -516,7 +554,7 @@ const DUNGEONS = [
       color: "#FF0000",
       monsters: [
         { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
-          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단도, 관, 투구"
         }
       ],
       coords: [
@@ -531,7 +569,7 @@ const DUNGEONS = [
           info:"필요 운 : 8,932\n체력 : 2,388,901\n치명타 저항 55%\n\n저하계 저항 필요\n\n드랍 : 슬링, 목걸이, 벨트, 팔찌"
         },
         { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
-          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단도, 관, 투구"
         }
       ],
       coords: [
@@ -546,7 +584,7 @@ const DUNGEONS = [
           info:"필요 운 : 7,925\n체력 : 2,210,101\n치명타 저항 60%\n\n드랍 : 피리, 귀걸이, 갑옷, 신발"
         },
         { name:"다과회의 사역마", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/672/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/demon.png",
-          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단검, 관, 투구"
+          info:"필요 운 : 9,461\n체력 : 2,750,032\n치명타 저항 50%\n\n불 에너지펫 필요\n저주계 저항 필요\n\n드랍 : 날개, 단도, 관, 투구"
         }
       ],
       coords: [
@@ -711,7 +749,7 @@ const DUNGEONS = [
   id:"684",
   name:"Lv.1400 [멸망한 도시 루미너스]",
   minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/684/684.png",
-  memo:"고도 브룬넨슈티그 분수대 앞 여자 마법사(75,78) 대화 후, 5 - 12 - 5 선택",
+  memo:"고도 브룬넨슈티그 분수대 앞 여자 마법사(75,78) 대화 후, 5 - 12 - 4 선택",
   groups: {
     A: {
       name: "탈옥수 + 해골 병사",
@@ -761,7 +799,7 @@ const DUNGEONS = [
   id:"688",
   name:"Lv.1450 [악마들의 은신처]",
   minimap:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/688/688.png",
-  memo:"고도 브룬넨슈티그 분수대 앞 여자 마법사(75,78) 대화 후, 5 - 12 - 6 선택",
+  memo:"고도 브룬넨슈티그 분수대 앞 여자 마법사(75,78) 대화 후, 5 - 12 - 5 선택",
   groups: {
     A: {
       name: "사탄",
@@ -897,7 +935,7 @@ const DUNGEONS = [
         color:"#18b6ff",
         monsters:[
           { name:"진흙의 망자", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/c.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
-            info:"필요 운 : 7,640\n체력 : 4,976,791\n치명타 저항 75%\n\n드랍 : 이빨, 단검, 투구, 발톱" },
+            info:"필요 운 : 7,640\n체력 : 4,976,791\n치명타 저항 75%\n\n드랍 : 이빨, 단도, 투구, 발톱" },
           { name:"신음하는 살덩이", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/a.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
             info:"필요 운 : 7,791\n체력 : 5,298,090\n치명타 저항 55%\n\n드랍 : 슬링, 마술봉, 목걸이, 벨트, 브로치, 탄환" },
 		  { name:"타락한 기사", img:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/696/b.png", raceIcon:"https://raw.githubusercontent.com/RSEO0107/Monsterbook/main/images/icons/undead.png",
@@ -1248,6 +1286,12 @@ const tipBodyEl       = document.getElementById("tipBody");
 const groupSectionsEl = document.getElementById("groupSections");
 const dungeonMemoEl   = document.getElementById("dungeonMemo");
 
+// ✅ (1,2에서 추가한) 검색창
+const searchBoxEl     = document.getElementById("searchBox");
+
+// ✅ 드랍 검색 상태
+let activeDropQuery = "";
+
 function escapeHtml(s){
   return String(s ?? "")
     .replaceAll("&","&amp;")
@@ -1255,6 +1299,64 @@ function escapeHtml(s){
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#39;");
+}
+
+function escapeRegExp(s){
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// ✅ 텍스트(이미 escape된 문자열)에 토큰들을 하이라이트
+function highlightText(escapedText, query){
+  const tokens = parseQueryTokens(query);
+  if(tokens.length === 0) return escapedText;
+
+  const sorted = [...new Set(tokens)].sort((a,b)=>b.length-a.length);
+  let out = escapedText;
+
+  for(const t of sorted){
+    if(!t) continue;
+    const re = new RegExp(escapeRegExp(t), "gi");
+    out = out.replace(re, (m)=>`<mark class="hit">${m}</mark>`);
+  }
+  return out;
+}
+
+function norm(s){
+  return String(s ?? "").toLowerCase();
+}
+
+function parseQueryTokens(q){
+  return String(q ?? "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s.toLowerCase());
+}
+
+function monsterMatchesQuery(m, q){
+  const tokens = parseQueryTokens(q);
+  if(tokens.length === 0) return true;
+
+  const info = String(m?.info ?? "");
+  const lines = info.split("\n");
+  const dropLine = lines.find(l => l.trim().startsWith("드랍"));
+  const hay = (dropLine ? dropLine : info).toLowerCase();
+
+  // ✅ OR 검색: "활, 창"이면 둘 중 하나라도 포함되면 매칭
+  return tokens.some(t => hay.includes(t));
+}
+
+// ✅ 던전에 검색어에 매칭되는 몬스터가 하나라도 있으면 true
+function dungeonMatchesQuery(d, q){
+  q = norm(q).trim();
+  if(!q) return true;
+
+  for (const gd of Object.values(d.groups ?? {})) {
+    for (const m of (gd.monsters ?? [])) {
+      if (monsterMatchesQuery(m, q)) return true;
+    }
+  }
+  return false;
 }
 
 function buildPoints(d){
@@ -1275,9 +1377,10 @@ function updateScale(){
   currentScale = viewW / naturalW;
 }
 
-function renderDungeonList(){
+// ✅ list 인자 받도록 변경 (필터된 던전만 표시 가능)
+function renderDungeonList(list = DUNGEONS){
   dungeonListEl.innerHTML = "";
-  DUNGEONS.forEach(d=>{
+  list.forEach(d=>{
     const el = document.createElement("div");
     el.className = "dungeon-item";
     el.dataset.id = d.id;
@@ -1308,16 +1411,41 @@ function clearHoverMonster(){
   applyFilter();
 }
 
-/* ===== 점/하단 dim 처리: "몬스터 이름" 기준 ===== */
+/* ===== 점/하단 필터 =====
+   - 검색어 있으면: 매칭되는 그룹 점만 "표시"
+   - 검색어 없으면: 기존 hover 기준 dim
+*/
 function applyFilter(){
   const dots = overlayEl.querySelectorAll(".dot");
 
+  // ✅ 1) 드랍 검색이 켜져 있으면: 해당 그룹만 표시하고 나머지는 숨김
+  if (activeDropQuery && currentDungeon){
+    const hitGroups = new Set();
+    for (const [g, gd] of Object.entries(currentDungeon?.groups ?? {})) {
+      const monsters = gd.monsters ?? [];
+      if (monsters.some(m => monsterMatchesQuery(m, activeDropQuery))) {
+        hitGroups.add(g);
+      }
+    }
+
+    dots.forEach(d=>{
+      const ok = hitGroups.has(d.dataset.group);
+      d.style.display = ok ? "" : "none";
+      d.classList.remove("dim");
+    });
+    return;
+  }
+
+  // ✅ 2) 검색이 없으면 점은 모두 표시
+  dots.forEach(d => d.style.display = "");
+
+  // ✅ 3) hover가 없으면 dim 해제
   if (!activeMonsterHover) {
     dots.forEach(d => d.classList.remove("dim"));
     return;
   }
 
-  // hover된 몬스터가 포함된 그룹들
+  // ✅ 4) hover된 몬스터가 포함된 그룹들만 dim 해제
   const hitGroups = new Set();
   for (const [g, gd] of Object.entries(currentDungeon?.groups ?? {})) {
     const monsters = gd.monsters ?? [];
@@ -1342,25 +1470,30 @@ function selectDungeon(id){
   buildPoints(currentDungeon);
   renderDungeonMemo();
 
-mapImgEl.onload = () => {
-  // ✅ 원본 폭 이상으로는 커지지 않게 제한
-  const nw = mapImgEl.naturalWidth || 1600;
-  mapWrap.style.maxWidth = nw + "px";
+  mapImgEl.onload = () => {
+    // ✅ 원본 폭 이상으로는 커지지 않게 제한
+    const nw = mapImgEl.naturalWidth || 1600;
+    mapWrap.style.maxWidth = nw + "px";
 
-  updateScale();
-  renderPoints();
-  renderBelowMonsters();
-};
+    updateScale();
+    renderPoints();
+    renderBelowMonsters();
+  };
   mapImgEl.src = currentDungeon.minimap;
 }
 
 /* ===== Tooltip (그룹 기준 유지) ===== */
 function showTooltipForGroup(group, x, y){
-  const monsters = currentDungeon?.groups?.[group]?.monsters ?? [];
+  let monsters = currentDungeon?.groups?.[group]?.monsters ?? [];
+
+  // ✅ 검색어 있으면 그 몬스터만 표시
+  if (activeDropQuery) {
+    monsters = monsters.filter(m => monsterMatchesQuery(m, activeDropQuery));
+  }
 
   tipBodyEl.innerHTML = monsters.length
     ? `<div class="monster-list">${monsters.map(renderMonsterCard).join("")}</div>`
-    : `<div style="padding:6px;font-size:13px;">몬스터 정보 없음</div>`;
+    : `<div style="padding:6px;font-size:13px;">검색 결과 없음</div>`;
 
   tooltipEl.style.display = "block";
   tooltipEl.setAttribute("aria-hidden","false");
@@ -1379,7 +1512,7 @@ function moveTooltip(x,y){
   let top  = y + pad;
 
   if (left + rect.width > window.innerWidth - 6) left = x - rect.width - pad;
-  if (top  + rect.height > window.innerHeight - 6) top  = y - rect.height - pad;
+  if (top + rect.height > window.innerHeight - 6) top = y - rect.height - pad;
 
   tooltipEl.style.left = Math.max(6, left) + "px";
   tooltipEl.style.top  = Math.max(6, top)  + "px";
@@ -1432,7 +1565,7 @@ function renderMonsterCard(m){
   return `
     <div class="monster-card">
       ${renderThumbWithOverlay(m)}
-      <div class="info"><div class="meta">${escapeHtml(m.info ?? "")}</div></div>
+      <div class="info"><div class="meta">${highlightText(escapeHtml(m.info ?? ""), activeDropQuery)}</div></div>
     </div>
   `;
 }
@@ -1452,6 +1585,9 @@ function renderBelowMonsters(){
       // display:false면 하단에선 제외 (툴팁은 그대로)
       if (m?.display === false) continue;
 
+      // ✅ 검색어 있으면 드랍 매칭 몬스터만 하단에 표시
+      if (activeDropQuery && !monsterMatchesQuery(m, activeDropQuery)) continue;
+
       if (!monsterMap.has(nm)) monsterMap.set(nm, m);
     }
   }
@@ -1469,15 +1605,46 @@ function renderBelowMonsters(){
     sec.addEventListener("mouseleave", () => clearHoverMonster());
 
     sec.innerHTML = `
-	  <div class="monster-list">
-		   ${renderMonsterCard(m)}
-	  </div>
-	`;
+      <div class="monster-list">
+        ${renderMonsterCard(m)}
+      </div>
+    `;
 
     groupSectionsEl.appendChild(sec);
   });
 
   applyFilter();
+}
+
+/* ===== 검색 적용: 왼쪽 목록 + 현재 던전/표시 갱신 ===== */
+function applyDropSearch(){
+  const q = norm(activeDropQuery).trim();
+
+  // 1) 왼쪽 던전 목록 필터
+  const filtered = q ? DUNGEONS.filter(d => dungeonMatchesQuery(d, q)) : DUNGEONS;
+  renderDungeonList(filtered);
+
+  // 2) 현재 던전이 필터에서 빠졌으면 첫 던전으로 이동
+  if (q && currentDungeon && !filtered.some(d => d.id === currentDungeon.id)) {
+    if (filtered[0]) selectDungeon(filtered[0].id);
+    return;
+  }
+
+  // 3) 현재 던전 내부만 갱신
+  if (currentDungeon) {
+    renderPoints();
+    renderBelowMonsters();
+  }
+}
+
+// ✅ 검색 입력 이벤트
+if (searchBoxEl){
+  searchBoxEl.addEventListener("input", () => {
+    activeDropQuery = searchBoxEl.value;
+    hideTooltip();
+    activeMonsterHover = null; // 검색 중 hover필터 혼동 방지
+    applyDropSearch();
+  });
 }
 
 /* ===== Editor (UI 없음) ===== */
@@ -1513,6 +1680,9 @@ window.addEventListener("resize",()=>{
 /* init */
 renderDungeonList();
 selectDungeon(DUNGEONS[0].id);
+// 초기에도 검색 상태 반영(검색창에 값이 남아있을 수 있으니)
+applyDropSearch();
+
 </script>
 </body>
 </html>
